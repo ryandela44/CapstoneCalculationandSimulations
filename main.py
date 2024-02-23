@@ -242,7 +242,7 @@ if __name__ == '__main__':
     # Assume braking force for illustration (you can adjust this based on actual braking systems)
     braking_force = 500  # Newtons
     # Initialize lists to store data
-    incline_angles_list = np.arange(-10, 11, 1)  # Incline angles from -10 to 10 degrees
+    incline_angles_list = range(-3,4)  # Incline angles from -10 to 10 degrees
     modes = ['Motor Only', 'Pedaling Only', 'Combined']
     # Initialize lists to store data
     # incline_angles_list = range(-10, 11)
@@ -336,61 +336,69 @@ if __name__ == '__main__':
             print(f"Energy Efficiency: {energy_efficiency_val:.2f}%")
             print("-" * 30)
 
-    # Plotting the data
-    plt.figure(figsize=(12, 8))
+    # Start by setting a larger figure size to accommodate all subplots clearly
+    plt.figure(figsize=(18, 12))
 
-    # Plot Maximum Speed vs. Incline Angle
+    # Maximum Speed vs. Incline Angle
     plt.subplot(2, 3, 1)
-    plt.plot(incline_angles_list, max_speed_motor_only, label='Motor Only')
-    plt.plot(incline_angles_list, max_speed_pedaling_only, label='Pedaling Only')
-    plt.plot(incline_angles_list, max_speed_combined, label='Combined')
-    plt.xlabel('Incline Angle (degrees)')
-    plt.ylabel('Maximum Speed (m/s)')
-    plt.title('Maximum Speed vs. Incline Angle')
-    plt.legend()
+    plt.plot(incline_angles_list, max_speed_motor_only, 'b-o', label='Motor Only')
+    plt.plot(incline_angles_list, max_speed_pedaling_only, 'r--x', label='Pedaling Only')
+    plt.plot(incline_angles_list, max_speed_combined, 'g-.^', label='Combined')
+    plt.xlabel('Incline Angle (Degrees)', fontsize=12)
+    plt.ylabel('Maximum Speed (m/s)', fontsize=12)
+    plt.title('Maximum Speed vs. Incline Angle', fontsize=14)
+    plt.legend(fontsize=10, loc='upper right')
+    plt.grid(alpha=0.3)
 
-    # Plot Operational Time vs. Incline Angle
+    # Operational Time vs. Incline Angle
     plt.subplot(2, 3, 2)
-    plt.plot(incline_angles_list, operational_time_without_pedaling, label='Without Pedaling')
-    plt.plot(incline_angles_list, operational_time_with_pedaling, label='With Pedaling')
-    plt.xlabel('Incline Angle (degrees)')
-    plt.ylabel('Operational Time (hours)')
-    plt.title('Operational Time vs. Incline Angle')
-    plt.legend()
+    plt.plot(incline_angles_list, operational_time_without_pedaling, 'c-o', label='Without Pedaling')
+    plt.plot(incline_angles_list, operational_time_with_pedaling, 'm--x', label='With Pedaling')
+    plt.xlabel('Incline Angle (Degrees)', fontsize=12)
+    plt.ylabel('Operational Time (Hours)', fontsize=12)
+    plt.title('Operational Time vs. Incline Angle', fontsize=14)
+    plt.legend(fontsize=10, loc='upper right')
+    plt.grid(alpha=0.3)
 
-    # Plot Estimated Range vs. Incline Angle
+    # Estimated Range vs. Incline Angle
     plt.subplot(2, 3, 3)
-    plt.plot(incline_angles_list, range_without_pedaling, label='Without Pedaling')
-    plt.plot(incline_angles_list, range_with_pedaling, label='With Pedaling')
-    plt.xlabel('Incline Angle (degrees)')
-    plt.ylabel('Estimated Range (km)')
-    plt.title('Estimated Range vs. Incline Angle')
-    plt.legend()
+    plt.plot(incline_angles_list, range_without_pedaling, 'y-o', label='Without Pedaling')
+    plt.plot(incline_angles_list, range_with_pedaling, 'k--x', label='With Pedaling')
+    plt.xlabel('Incline Angle (Degrees)', fontsize=12)
+    plt.ylabel('Estimated Range (km)', fontsize=12)
+    plt.title('Estimated Range vs. Incline Angle', fontsize=14)
+    plt.legend(fontsize=10, loc='upper right')
+    plt.grid(alpha=0.3)
 
-    # Plot Energy Efficiency vs. Incline Angle
+    # Energy Efficiency vs. Incline Angle
     plt.subplot(2, 3, 4)
-    plt.plot(incline_angles_list, energy_efficiency)
-    plt.xlabel('Incline Angle (degrees)')
-    plt.ylabel('Energy Efficiency (%)')
-    plt.title('Energy Efficiency vs. Incline Angle')
+    plt.plot(incline_angles_list, energy_efficiency, 'b-o', label='Energy Efficiency')
+    plt.xlabel('Incline Angle (Degrees)', fontsize=12)
+    plt.ylabel('Energy Efficiency (%)', fontsize=12)
+    plt.title('Energy Efficiency vs. Incline Angle', fontsize=14)
+    plt.legend(fontsize=10, loc='upper right')
+    plt.grid(alpha=0.3)
 
-    # Plot Total Torque vs. Incline Angle
+    # Total Torque vs. Incline Angle
     plt.subplot(2, 3, 5)
-    plt.plot(incline_angles_list, total_torque_without_pedaling, label='Without Pedaling')
-    plt.plot(incline_angles_list, total_torque_with_pedaling, label='With Pedaling')
-    plt.xlabel('Incline Angle (degrees)')
-    plt.ylabel('Total Torque (Nm)')
-    plt.title('Total Torque vs. Incline Angle')
-    plt.legend()
+    plt.plot(incline_angles_list, total_torque_without_pedaling, 'g-o', label='Without Pedaling')
+    plt.plot(incline_angles_list, total_torque_with_pedaling, 'r--x', label='With Pedaling')
+    plt.xlabel('Incline Angle (Degrees)', fontsize=12)
+    plt.ylabel('Total Torque (Nm)', fontsize=12)
+    plt.title('Total Torque vs. Incline Angle', fontsize=14)
+    plt.legend(fontsize=10, loc='upper right')
+    plt.grid(alpha=0.3)
 
-    # Plot Total Power vs. Incline Angle
+    # Total Power vs. Incline Angle
     plt.subplot(2, 3, 6)
-    plt.plot(incline_angles_list, total_power_without_pedaling, label='Without Pedaling')
-    plt.plot(incline_angles_list, total_power_with_pedaling, label='With Pedaling')
-    plt.xlabel('Incline Angle (degrees)')
-    plt.ylabel('Total Power (W)')
-    plt.title('Total Power vs. Incline Angle')
-    plt.legend()
+    plt.plot(incline_angles_list, total_power_without_pedaling, 'm-o', label='Without Pedaling')
+    plt.plot(incline_angles_list, total_power_with_pedaling, 'c--x', label='With Pedaling')
+    plt.xlabel('Incline Angle (Degrees)', fontsize=12)
+    plt.ylabel('Total Power (W)', fontsize=12)
+    plt.title('Total Power vs. Incline Angle', fontsize=14)
+    plt.legend(fontsize=10, loc='upper right')
+    plt.grid(alpha=0.3)
 
-    plt.tight_layout()
+    plt.tight_layout()  # Adjust the layout to ensure no subplot is squeezed
     plt.show()
+
