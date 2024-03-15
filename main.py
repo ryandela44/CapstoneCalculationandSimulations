@@ -1,150 +1,155 @@
-from acceleration import *
-from battery import *
-from power import *
-from speed import *
-from torque import *
-from plots import *
-from friction import *
+import math
+
+
+class ElectricSkiBike:
+    def __init__(self, mass, wheel_radius, mu_s_wheel, mu_k_skis, mu_k_wheel, power_val, pedaling_power_val,
+                 battery_voltage, battery_capacity_ah):
+        self.mass = mass
+        self.wheel_radius = wheel_radius
+        self.mu_s_wheel = mu_s_wheel
+        self.mu_k_skis = mu_k_skis
+        self.mu_k_wheel = mu_k_wheel
+        self.power_val = power_val
+        self.pedaling_power_val = pedaling_power_val
+        self.battery = Battery(battery_voltage, battery_capacity_ah)
+
+    def get_effective_power(self, mode):
+        if mode == "Motor Only":
+            return self.power_val
+        elif mode == "Pedaling Only":
+            return self.pedaling_power_val
+        elif mode == "Combined":
+            return self.power_val + self.pedaling_power_val
+        else:
+            return 0
+
+    def get_gear_ratio(self, mode):
+        if mode == "Pedaling Only":
+            return 3
+        elif mode == "Combined":
+            return 2.5
+        else:
+            return 1
+
+    def simulate(self, incline_angles_list):
+        for incline_angle in incline_angles_list:
+            environment = Environment(incline_angle)
+            for mode in ["Motor Only", "Pedaling Only", "Combined"]:
+                self.run_scenario(mode, environment)
+
+    def run_scenario(self, mode, environment):
+        effective_power = self.get_effective_power(mode)
+        gear_ratio = self.get_gear_ratio(mode)
+        normal_force = environment.calculate_normal_force(self.mass)
+        static_friction_force_wheel, kinetic_friction_force = environment.calculate_friction_forces(normal_force,
+                                                                                                    self.mu_s_wheel,
+                                                                                                    self.mu_k_skis,
+                                                                                                    self.mu_k_wheel)
+        condition, initial_torque = environment.check_starting_condition(effective_power, gear_ratio, self.wheel_radius,
+                                                                         static_friction_force_wheel)
+
+        print(f"\nScenario: {mode}, Incline angle: {environment.incline_angle} degrees")
+        if condition == 'insufficient':
+            print(f"Insufficient torque ({initial_torque:.2f} Nm): The bike does not move.")
+        elif condition == 'sufficient':
+            print(f"Sufficient torque ({initial_torque:.2f} Nm): The bike will roll without sliding at the start.")
+        else:
+            print(f"Excessive torque ({initial_torque:.2f} Nm): The bike may slide at the start.")
+
+        if condition != 'insufficient':
+            load_force = kinetic_friction_force
+            required_torque = environment.calculate_required_torque(load_force, self.wheel_radius)
+            average_speed = environment.calculate_max_speed(effective_power, load_force, self.wheel_radius)
+            actual_power_required = environment.calculate_actual_power_required(load_force, average_speed)
+            operational_time_h = self.battery.calculate_operational_time(actual_power_required)
+            range_km = environment.calculate_range_km(operational_time_h, average_speed)
+
+            self.print_simulation_details(effective_power, static_friction_force_wheel, kinetic_friction_force,
+                                          required_torque, average_speed, operational_time_h, range_km)
+
+    def print_simulation_details(self, effective_power, static_friction_force_wheel, kinetic_friction_force,
+                                 required_torque, average_speed, operational_time_h, range_km):
+        print(f"Effective Power: {effective_power} W")
+        print(f"Static Friction Force at the wheel: {static_friction_force_wheel:.2f} N")
+        print(f"Kinetic Friction Force overall: {kinetic_friction_force:.2f} N")
+        print(f"Required Torque for continuous motion: {required_torque:.2f} Nm")
+        print(f"Average Speed: {average_speed:.2f} m/s")
+        print(f"Operational Time: {operational_time_h:.2f} hours")
+        print(f"Estimated Range: {range_km:.2f} km\n")
+
+
+class Battery:
+    def __init__(self, voltage, capacity_ah):
+        self.energy_capacity_wh = voltage * capacity_ah
+
+    def calculate_operational_time(self, power_consumption_w):
+        if power_consumption_w == 0:
+            return 0
+        else:
+            return self.energy_capacity_wh / power_consumption_w
+
+
+class Environment:
+    g = 9.81  # Gravity in m/s^2
+
+    def __init__(self, incline_angle):
+        self.incline_angle = incline_angle
+
+    def calculate_normal_force(self, mass):
+        theta_radians = math.radians(self.incline_angle)
+        return mass * self.g * math.cos(theta_radians)
+
+    def calculate_friction_forces(self, normal_force, mu_s_wheel, mu_k_skis, mu_k_wheel):
+        static_friction_force_wheel = mu_s_wheel * normal_force
+        kinetic_friction_force = (mu_k_skis * normal_force * 0.9) + (mu_k_wheel * normal_force * 0.1)
+        return static_friction_force_wheel, kinetic_friction_force
+
+    def check_starting_condition(self, effective_power, gear_ratio, radius_wheel, static_friction_force_wheel):
+        nominal_speed_rpm = 100
+        initial_torque = (effective_power * gear_ratio) / (2 * math.pi * (nominal_speed_rpm / 60))
+        torque_needed_to_overcome_static_friction = static_friction_force_wheel * radius_wheel
+        minimum_torque_to_move = torque_needed_to_overcome_static_friction * 0.8
+
+        if initial_torque < minimum_torque_to_move:
+            return 'insufficient', initial_torque
+        elif initial_torque <= torque_needed_to_overcome_static_friction:
+            return 'sufficient', initial_torque
+        else:
+            return 'excessive', initial_torque
+
+    def calculate_required_torque(self, load_force, radius_of_wheel):
+        return load_force * radius_of_wheel
+
+    def calculate_max_speed(self, power, load_force, radius_of_wheel, realistic_max_speed=20):
+        if load_force == 0:
+            return realistic_max_speed
+        torque = power / (load_force / radius_of_wheel)
+        angular_velocity = torque / radius_of_wheel
+        max_speed = angular_velocity * radius_of_wheel
+        return min(max_speed, realistic_max_speed)
+
+    def calculate_actual_power_required(self, load_force, speed):
+        return load_force * speed
+
+    def calculate_range_km(self, operational_time_h, speed_m_per_s):
+        if operational_time_h == 0:
+            return 0
+        else:
+            speed_km_per_h = speed_m_per_s * 3.6
+            return speed_km_per_h * operational_time_h
+
 
 if __name__ == '__main__':
-    g = 9.81  # Gravity in m/s^2
-    mass_total = 100  # Total mass of the bike and rider in kg
-    mass_wheel = 1.4  # Mass of the wheel in kg
-    r = 0.6604  # Radius of the wheel in meters
-    k = 0.15  # Radius of gyration in meters
-    mu_k = 0.05  # Kinetic friction coefficient for skis on snow
-    terrain_coefficient = 0.2
-    # wet 0.4 , #dry 0.7
-    tire_material_coefficient = 0.4
-    # Initialize lists to store data
-    incline_angles_list = range(-3, 4)  # Incline angles
-    modes = ['Motor Only', 'Pedaling Only', 'Combined']
-    # Initialize lists to store data
-    # incline_angles_list = range(-10, 11)
-    max_speed_motor_only = []
-    max_speed_pedaling_only = []
-    max_speed_combined = []
-    operational_time_without_pedaling = []
-    operational_time_with_pedaling = []
-    range_without_pedaling = []
-    range_with_pedaling = []
-    energy_efficiency = []
-    total_torque_without_pedaling = []
-    total_torque_with_pedaling = []
-    total_power_without_pedaling = []
-    total_power_with_pedaling = []
-    braking_distances = []
-    # Initialize lists to store data
-    max_speed_motor_only_1 = []
-    max_speed_pedaling_only_1 = []
-    max_speed_combined_1 = []
-
-    time = 10
-
-    # Loop through incline angles and modes
-    for incline_angle in incline_angles_list:
-        for mode in modes:
-            if mode == 'Motor Only':
-                power_val = 1000
-                pedaling_power_val = 0
-                initial_speed = 0  # Starting from rest
-                final_speed = 10  # Example final speed
-            elif mode == 'Pedaling Only':
-                power_val = 0
-                pedaling_power_val = 150
-                initial_speed = 0  # Starting from rest
-                final_speed = 10  # Example final speed
-            else:  # Combined mode
-                power_val = 1000
-                pedaling_power_val = 150
-                initial_speed = 0  # Starting from rest
-                final_speed = 10  # Example final speed
-
-                # Calculate acceleration
-            acceleration_val = calculate_acceleration(initial_speed, final_speed, time)
-            # Append acceleration values to corresponding lists based on mode
-            if mode == 'Motor Only':
-                max_speed_motor_only_1.append(acceleration_val)
-            elif mode == 'Pedaling Only':
-                max_speed_pedaling_only_1.append(acceleration_val)
-            else:  # Combined mode
-                max_speed_combined_1.append(acceleration_val)
-
-            # Calculate various parameters
-            mu_s_total_val = calculate_static_friction_coefficient(r, k, mass_total, g, incline_angle,
-                                                                   tire_material_coefficient, terrain_coefficient)
-            mu_s_wheel_val = calculate_static_friction_coefficient(r, k, mass_wheel, g, incline_angle,
-                                                                   tire_material_coefficient, terrain_coefficient)
-            kinetic_friction_force_val = calculate_kinetic_friction_force(mass_total, g, incline_angle, mu_k)
-            normal_force_val = calculate_normal_force(mass_total, g, incline_angle)
-            static_friction_force_val = calculate_frictional_force(mu_s_total_val, normal_force_val)
-            load_force_val = calculate_load_force(mass_total, g, incline_angle, mu_k, mu_s_total_val)
-            required_torque_val = calculate_required_torque(load_force_val, r)
-
-            battery_voltage_val = 48
-            battery_capacity_ah_val = 13
-            energy_capacity_wh_val = battery_voltage_val * battery_capacity_ah_val
-            average_speed_val = 10
-            actual_power_required_val = calculate_actual_power_required(load_force_val, average_speed_val)
-            max_speed_val = calculate_max_speed(power_val, load_force_val, r)
-            operational_time_h_val = calculate_operational_time(energy_capacity_wh_val, actual_power_required_val)
-            range_km_val = calculate_range_km(operational_time_h_val, average_speed_val)
-            torque_from_pedaling_val = calculate_pedaling_contribution(pedaling_power_val, r, average_speed_val)
-            total_torque_with_pedaling_val = required_torque_val + torque_from_pedaling_val
-            total_power_with_pedaling_val = actual_power_required_val + pedaling_power_val
-            operational_time_with_pedaling_val = calculate_operational_time(energy_capacity_wh_val,
-                                                                            total_power_with_pedaling_val)
-            range_with_pedaling_val = calculate_range_km(operational_time_with_pedaling_val, average_speed_val)
-            distance_traveled_km_val = range_with_pedaling_val
-            total_energy_consumed_wh_val = energy_capacity_wh_val
-            energy_efficiency_val = calculate_energy_efficiency(mass_total, g, incline_angle, distance_traveled_km_val,
-                                                                total_energy_consumed_wh_val)
-
-            # Append values to corresponding lists
-            if mode == 'Motor Only':
-                max_speed_motor_only.append(max_speed_val)
-                operational_time_without_pedaling.append(operational_time_h_val)
-                range_without_pedaling.append(range_km_val)
-                total_torque_without_pedaling.append(required_torque_val)
-                total_power_without_pedaling.append(actual_power_required_val)
-            elif mode == 'Pedaling Only':
-                max_speed_pedaling_only.append(max_speed_val)
-                operational_time_with_pedaling.append(operational_time_with_pedaling_val)
-                range_with_pedaling.append(range_with_pedaling_val)
-                total_torque_with_pedaling.append(total_torque_with_pedaling_val)
-                total_power_with_pedaling.append(total_power_with_pedaling_val)
-            else:  # Combined mode
-                max_speed_combined.append(max_speed_val)
-                energy_efficiency.append(energy_efficiency_val)
-
-            # Print scenario details
-            print(f"Scenario: {mode}")
-            print(f"Incline angle: {incline_angle}")
-            print(f"Static Friction Coefficient for the bike system: {mu_s_total_val}")
-            print(f"Static Friction Coefficient for just the wheel: {mu_s_wheel_val}")
-            print(f"Static Friction Force : {static_friction_force_val} N")
-            print(f"Kinetic Friction Force for the skis: {kinetic_friction_force_val} N")
-            print(f"Total Load Force to be overcome: {load_force_val} N")
-            print(f"Required Torque to overcome the load: {required_torque_val} Nm")
-            print(f"Additional Torque from Pedaling: {torque_from_pedaling_val:.2f} Nm")
-            print(f"Total Torque with Pedaling: {total_torque_with_pedaling_val:.2f} Nm")
-            print(f"Total Power with Pedaling: {total_power_with_pedaling_val} W")
-            print(f"Actual Power Required at {average_speed_val} m/s: {actual_power_required_val} W")
-            print(f"Maximum Speed achievable: {max_speed_val} m/s")
-            print(f"Energy Capacity of the battery: {energy_capacity_wh_val} Wh")
-            print(f"Operational Time without pedaling: {operational_time_h_val:.2f} hours")
-            print(f"Estimated Range without pedaling: {range_km_val:.2f} km")
-            print(f"Operational Time with pedaling: {operational_time_with_pedaling_val:.2f} hours")
-            print(f"Estimated Range with pedaling: {range_with_pedaling_val:.2f} km")
-            print(f"Energy Efficiency: {energy_efficiency_val:.2f}%")
-            print("-" * 30)
-
-    setup_plot()
-    plot_speed_vs_angle(incline_angles_list, max_speed_motor_only, max_speed_pedaling_only, max_speed_combined)
-    plot_operational_time_vs_angle(incline_angles_list, operational_time_without_pedaling,
-                                   operational_time_with_pedaling)
-    plot_estimated_range_vs_angle(incline_angles_list, range_without_pedaling, range_with_pedaling)
-    plot_efficieny_vs_incline_angle(incline_angles_list, energy_efficiency)
-    plot_torque_vs_incline_angle(incline_angles_list, total_torque_without_pedaling, total_torque_with_pedaling)
-    plot_power_vs_incline_angle(incline_angles_list, total_power_without_pedaling, total_torque_with_pedaling)
-    plot_speed_vs_time(time, max_speed_motor_only_1, max_speed_pedaling_only_1, max_speed_combined_1)
+    bike = ElectricSkiBike(
+        mass=100,
+        wheel_radius=0.6604,
+        mu_s_wheel=0.3,
+        mu_k_skis=0.03,
+        mu_k_wheel=0.25,
+        power_val=1000,
+        pedaling_power_val=150,
+        battery_voltage=48,
+        battery_capacity_ah=13
+    )
+    incline_angles_list = range(-3, 4)
+    bike.simulate(incline_angles_list)
