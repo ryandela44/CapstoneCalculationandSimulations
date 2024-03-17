@@ -1,7 +1,9 @@
 from math import radians, cos, sin, degrees
-from bike import *
 
-def determine_bike_state(force, max_static_friction, max_battery_force, pedaling_force, mode):
+from matplotlib import pyplot as plt
+
+
+def determine_bike_state(force, max_static_friction, max_battery_force, pedaling_force, mode, state):
     motor_force = 0
     total_force = 0
     if mode == '0':
@@ -21,12 +23,63 @@ def determine_bike_state(force, max_static_friction, max_battery_force, pedaling
 
     if force <= total_force:
         if total_force <= max_static_friction:
-            print("wheel will start rolling without slipping")
+            if state == 'rest':
+                print("Wheel will start rolling without slipping")
+            else:
+                print("Bike  continues to move without slipping")
         else:
-            print("wheel will slip")
+            print("Wheel will slip")
     else:
-        print("bike is not able to move")
+        if state == 'rest':
+            print("Bike is not able to move")
+        else:
+            print("Bike starts to slow down and eventually comes to a stop")
     return motor_force, total_force
+
+
+def print_motor_stats(normal_force, max_static_friction, drag_force, rolling_resistance_force,
+                      force, torque, motor_force, total_force, actual_motor_power, motor_rpm,
+                      total_power):
+    print("The normal force is: ", normal_force, "N")
+    print("The static friction force is: ", max_static_friction, "N")
+    print("The drag force is: ", drag_force, "N")
+    print("The rolling resistance force is: ", rolling_resistance_force, "N")
+    print("The force from rest  is: ", force, "N")
+    print("The torque from rest is: ", torque, "Nm")
+    print("The actual motor force is: ", motor_force, "N")
+    print("The total force from rest is: ", total_force, "N")
+    print("The motor power from rest is: ", actual_motor_power, "W")
+    print("The motor rpm from rest is: ", motor_rpm, "rpm")
+    print("The total power from rest is: ", total_power, "W")
+
+
+def print_battery_stats(operation_time, battery_range):
+    print("The operational time is: ", operation_time, "hours")
+    print("The battery range is: ", battery_range, "km")
+
+
+def plot_motor_power(speeds, motor_powers):
+    plt.plot(speeds, motor_powers)
+    plt.xlabel('Speed (m/s)')
+    plt.ylabel('Motor Power (W)')
+    plt.title('Motor Power vs Speed')
+    plt.show()
+
+
+def plot_battery_range(speeds, battery_ranges):
+    plt.plot(speeds, battery_ranges)
+    plt.xlabel('Speed (m/s)')
+    plt.ylabel('Battery Range (km)')
+    plt.title('Battery Range vs Speed')
+    plt.show()
+
+
+def plot_operation_time(speeds, operation_times):
+    plt.plot(speeds, operation_times)
+    plt.xlabel('Speed (m/s)')
+    plt.ylabel('Operation Time (hours)')
+    plt.title('Operation Time vs Speed')
+    plt.show()
 
 
 if __name__ == '__main__':
@@ -59,7 +112,7 @@ if __name__ == '__main__':
     # air density unit is kg/m^3
     air_density = 1.225
     # speed unit is m/s
-    speeds = range(0, 10)
+    speeds = range(0, 11)
     rolling_resistance = 0.01
     operation_time = 0
     battery_range = 0
@@ -69,9 +122,14 @@ if __name__ == '__main__':
     angular_speed_motor = 0
 
     modes = ['pedal', 'motor', 'both']
-    time = range(0, 10)
+    states = ['rest', 'motion']
+    time = range(0, 11)
 
-    angle = radians(3)
+    angle = radians(10)
+
+    operation_times = []
+    battery_ranges = []
+    motor_powers = []
 
     normal_force = mass * g * cos(angle)
     max_static_friction = mu_s_wheel * normal_force
@@ -84,6 +142,9 @@ if __name__ == '__main__':
     mode = input("Press Enter the mode of operation... ")
 
     for speed in speeds:
+        print("**************************************************************")
+        print("The speed is: ", speed, "m/s")
+        print("The angle is: ", degrees(angle), "degrees")
         # Starting from rest
         drag_force = 0.5 * drag_coefficient * air_density * frontal_area * speed ** 2
         rolling_resistance_force = rolling_resistance * normal_force
@@ -95,7 +156,7 @@ if __name__ == '__main__':
         acceleration_init = force_init / mass
 
         motor_force_init, total_force_init = determine_bike_state(force_init, max_static_friction,
-                                                                  max_battery_force, pedaling_force, mode)
+                                                                  max_battery_force, pedaling_force, mode, states[0])
         motor_torque_init = motor_force_init * wheel_radius
         actual_motor_power_init = motor_force_init * speed
         if motor_torque_init != 0:
@@ -103,12 +164,16 @@ if __name__ == '__main__':
         motor_rpm_init = angular_speed_motor_init * 60 / (2 * 3.14)
         total_power_init = total_force_init * speed
 
+        print_motor_stats(normal_force, max_static_friction, drag_force, rolling_resistance_force,
+                          force_init, torque_init, motor_force_init, total_force_init,
+                          actual_motor_power_init, motor_rpm_init, total_power_init)
+
         if force_init <= total_force_init:
             # bike in motion
             force = mass * g * sin(angle) + rolling_resistance_force + ski_friction + drag_force
             torque = force * wheel_radius
             motor_force, total_force = determine_bike_state(force, max_static_friction, max_battery_force,
-                                                            pedaling_force, mode)
+                                                            pedaling_force, mode, states[1])
 
             actual_motor_power = motor_force * speed
             total_power = total_force * speed
@@ -122,32 +187,16 @@ if __name__ == '__main__':
             operation_time = (batter_energy / actual_motor_power)
             # battery range in km
             battery_range = operation_time * speed * 3.6
+            print_motor_stats(normal_force, max_static_friction, drag_force, rolling_resistance_force,
+                              force, torque, motor_force, total_force, actual_motor_power, motor_rpm,
+                              total_power)
+            print_battery_stats(operation_time, battery_range)
 
-            print("**************************************************************")
-            print("**************************************************************")
-            print("The speed is: ", speed, "m/s")
-            print("The angle is: ", degrees(angle), "degrees")
-            print("The normal force is: ", normal_force, "N")
-            print("The static friction force is: ", max_static_friction, "N")
-            print("The drag force is: ", drag_force, "N")
-            print("The rolling resistance force is: ", rolling_resistance_force, "N")
-            print("The force from rest  is: ", force_init, "N")
-            print("The torque from rest is: ", torque, "Nm")
-            print("The actual motor force is: ", motor_force_init, "N")
-            print("The total force from rest is: ", total_force_init, "N")
-            print("The motor power from rest is: ", actual_motor_power_init, "W")
-            print("The motor rpm from rest is: ", motor_rpm_init, "rpm")
-            print("The total power from rest is: ", total_power_init, "W")
-            if force_init <= total_force_init:
-                print("Bike is in motion")
-                print("The force in motion  is: ", force, "N")
-                print("The torque in motion is: ", torque, "Nm")
-                print("The actual motor force in motion is: ", motor_force, "N")
-                print("The motor rpm from rest is: ", motor_rpm, "rpm")
-                print("The total force in motion is: ", total_force, "N")
-                print("The motor power in motion is: ", actual_motor_power, "W")
-                print("The total power in motion is: ", total_power, "W")
-                print("The operational time is: ", operation_time, "Hrs")
-                print("The battery range is: ", battery_range, "km")
-            print("**************************************************************")
-            print("**************************************************************")
+        motor_powers.append(actual_motor_power)
+        operation_times.append(operation_time)
+        battery_ranges.append(battery_range)
+        print("**************************************************************")
+
+    plot_motor_power(speeds, motor_powers)
+    plot_battery_range(speeds, battery_ranges)
+    plot_operation_time(speeds, operation_times)
