@@ -3,44 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <title>Bike Simulator</title>
-    <link rel="stylesheet" href="css/style.css">
+    <!-- Include Tailwind CSS from CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
-    <h1>Bike Simulator</h1>
-    <form action="/simulate" method="post">
-        <div>
-            <label>
-                Rider Mass (kg): <input type="number" name="mass" step="0.1" required>
-            </label>
-        </div>
-        <div id="terrain-div">
-            <p>Terrain Type:</p>
-            <label for="terrain-input-snow">Snow</label>
-            <input type="radio" id="terrain-input-snow" name="terrain" value="snow" required>
-            <label for="terrain-input-ice">Ice</label>
-            <input type="radio" id="terrain-input-ice" name="terrain" value="ice" required>
-        </div>
-        <div>
-            <label>
-                Pedaling Force (N): <input type="number" name="pedaling_force" step="0.1" required>
-            </label>
-        </div>
-        <div>
-            <label>
-                Slope Angle (degrees): <input type="number" name="angle" step="0.1" required>
-            </label>
-        </div>
-        <div>
-            <p>Pedaling Mode:</p>
-            <select name="mode" required>
-                <option value="pedal">Pedal Only</option>
-                <option value="motor">Motor Only</option>
-                <option value="both">Both</option>
-            </select>
-        </div>
-        <div id="run-div">
-            <button type="submit">Run Simulation</button>
-        </div>
-    </form>
+<body class="bg-gray-100 h-screen flex justify-center items-center">
+    <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-xl">
+        <h1 class="text-2xl font-bold text-center mb-6">Bike Simulator</h1>
+        <form action="/simulate" method="post" class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Rider Mass (kg):</label>
+                <input type="number" name="mass" step="0.1" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <fieldset class="space-y-2">
+                <legend class="text-sm font-medium text-gray-700">Terrain Type:</legend>
+                <div class="flex items-center">
+                    <input type="radio" id="terrain-input-snow" name="terrain" value="snow" required class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
+                    <label for="terrain-input-snow" class="ml-2 block text-sm text-gray-900">Snow</label>
+                </div>
+                <div class="flex items-center">
+                    <input type="radio" id="terrain-input-ice" name="terrain" value="ice" required class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
+                    <label for="terrain-input-ice" class="ml-2 block text-sm text-gray-900">Ice</label>
+                </div>
+            </fieldset>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Pedaling Force (N):</label>
+                <input type="number" name="pedaling_force" step="0.1" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Slope Angle (degrees):</label>
+                <input type="number" name="angle" step="0.1" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Pedaling Mode:</label>
+                <select name="mode" required class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                    <option value="pedal">Pedal Only</option>
+                    <option value="motor">Motor Only</option>
+                    <option value="both">Both</option>
+                </select>
+            </div>
+            <div id="run-div" class="text-center">
+                <button type="submit" class="mt-2 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
+                    Run Simulation
+                </button>
+            </div>
+        </form>
+    </div>
 </body>
 </html>

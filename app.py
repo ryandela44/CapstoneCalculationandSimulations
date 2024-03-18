@@ -40,29 +40,45 @@ def simulate():
     )
 
     # Run the simulation (adjust the 'speeds' range as needed)
-    simulator.simulate(mode, range(0, 11))
-
-    # Assuming you've saved your plots as described in step 1
-    motor_power_plot = url_for('static', filename='motor_power_plot.png')
-    battery_range_plot = url_for('static', filename='battery_range_plot.png')
-    operation_time_plot = url_for('static', filename='operation_time_plot.png')
+    messages = simulator.simulate(mode, range(0, 11))
 
     # Generate URLs for the plots
     motor_power_plot = url_for('static', filename='motor_power_plot.png')
     battery_range_plot = url_for('static', filename='battery_range_plot.png')
     operation_time_plot = url_for('static', filename='operation_time_plot.png')
 
-    # Pass the URLs to the template string
-    html = render_template_string("""
-                <h1>Simulation Results</h1>
-                <img src="{{ motor_power_plot }}" alt="Motor Power Plot">
-                <img src="{{ battery_range_plot }}" alt="Battery Range Plot">
-                <img src="{{ operation_time_plot }}" alt="Operation Time Plot">
-                <a href="/">Run Another Simulation</a>
-            """, motor_power_plot=motor_power_plot, battery_range_plot=battery_range_plot,
+    # Return HTML with stats messages and image tags
+    return render_template_string("""
+            <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Simulation Results</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col justify-center items-center">
+    <div class="bg-white p-6 rounded-lg shadow-lg max-w-4xl w-full space-y-4">
+        <h1 class="text-xl md:text-2xl font-bold text-gray-800 text-center">Simulation Results</h1>
+        <div class="space-y-2">
+            {% for message in stats_messages %}
+                <p class="text-sm md:text-base text-gray-700">{{ message }}</p>
+            {% endfor %}
+        </div>
+        <div class="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0 justify-center items-center">
+            <img src="{{ motor_power_plot }}" alt="Motor Power Plot" class="w-full md:w-1/3 rounded-lg shadow-md">
+            <img src="{{ battery_range_plot }}" alt="Battery Range Plot" class="w-full md:w-1/3 rounded-lg shadow-md">
+            <img src="{{ operation_time_plot }}" alt="Operation Time Plot" class="w-full md:w-1/3 rounded-lg shadow-md">
+        </div>
+        <div class="text-center mt-4">
+            <a href="/" class="inline-block px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
+                Run Another Simulation
+            </a>
+        </div>
+    </div>
+</body>
+</html>
+        """, stats_messages=messages, motor_power_plot=motor_power_plot, battery_range_plot=battery_range_plot,
                                   operation_time_plot=operation_time_plot)
-
-    return html
 
 
 def determine_terrain_friction(terrain):
