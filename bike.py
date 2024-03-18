@@ -1,3 +1,5 @@
+import os
+
 import matplotlib.pyplot as plt
 from math import radians, cos, sin, degrees
 
@@ -28,12 +30,12 @@ class BikeSimulator:
     def determine_bike_state(self, force, max_static_friction, max_battery_force, pedaling_force, mode, state):
         motor_force = 0
         total_force = 0
-        if mode == '0':
+        if mode == 'pedal':
             total_force = pedaling_force
-        elif mode == '1':
+        elif mode == 'motor':
             motor_force = min(force, max_battery_force)
             total_force = motor_force
-        elif mode == '2':
+        elif mode == 'both':
             motor_force = max(0, force - pedaling_force)
             total_force = pedaling_force + motor_force
 
@@ -51,7 +53,6 @@ class BikeSimulator:
     def simulate(self, mode, speeds):
         operation_time = 0
         battery_range = 0
-        print("Press Enter the mode of operation...", mode)
         for speed in speeds:
             print("************************************************************")
             print("The speed is: ", speed, "m/s")
@@ -109,13 +110,13 @@ class BikeSimulator:
         print("The static friction force is: ", max_static_friction, "N")
         print("The drag force is: ", drag_force, "N")
         print("The rolling resistance force is: ", rolling_resistance_force, "N")
-        print("The force from rest  is: ", force, "N")
-        print("The torque from rest is: ", torque, "Nm")
+        print("The force is: ", force, "N")
+        print("The torque is: ", torque, "Nm")
         print("The actual motor force is: ", motor_force, "N")
-        print("The total force from rest is: ", total_force, "N")
-        print("The motor power from rest is: ", actual_motor_power, "W")
-        print("The motor rpm from rest is: ", motor_rpm, "rpm")
-        print("The total power from rest is: ", total_power, "W")
+        print("The total force is: ", total_force, "N")
+        print("The motor power is: ", actual_motor_power, "W")
+        print("The motor rpm  is: ", motor_rpm, "rpm")
+        print("The total power is: ", total_power, "W")
 
     def print_battery_stats(self, operation_time, battery_range):
         print("The operational time is: ", operation_time, "hours")
@@ -126,6 +127,9 @@ class BikeSimulator:
         plt.xlabel('Speed (m/s)')
         plt.ylabel('Motor Power (W)')
         plt.title('Motor Power vs Speed')
+        # Save the plot to a file
+        plot_path = os.path.join('static', 'motor_power_plot.png')
+        plt.savefig(plot_path)
         plt.show()
 
     def plot_battery_range(self, speeds, battery_ranges):
@@ -133,6 +137,10 @@ class BikeSimulator:
         plt.xlabel('Speed (m/s)')
         plt.ylabel('Battery Range (km)')
         plt.title('Battery Range vs Speed')
+
+        # Save the plot to a file
+        plot_path = os.path.join('static', 'battery_range_plot.png')
+        plt.savefig(plot_path)
         plt.show()
 
     def plot_operation_time(self, speeds, operation_times):
@@ -140,13 +148,8 @@ class BikeSimulator:
         plt.xlabel('Speed (m/s)')
         plt.ylabel('Operation Time (hours)')
         plt.title('Operation Time vs Speed')
+
+        # Save the plot to a file
+        plot_path = os.path.join('static', 'operation_time_plot.png')
+        plt.savefig(plot_path)
         plt.show()
-
-
-if __name__ == '__main__':
-    simulator = BikeSimulator(mass=100, wheel_radius=0.6604, mu_s_wheel=0.2, mu_k_skis=0.03, mu_k_wheel=0.25,
-                              max_motor_power=1000, pedaling_force=100, battery_voltage=48, battery_capacity_ah=13,
-                              drag_coefficient=0.5, frontal_area=0.5, air_density=1.225, rolling_resistance=0.01,
-                              angle_degrees=10)
-    mode = '1'  # For example purposes, set mode to '1'. Replace with input() for interactive use.
-    simulator.simulate(mode, range(0, 11))
