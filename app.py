@@ -17,6 +17,7 @@ def simulate():
     pedaling_force = float(request.form['pedaling_force'])
     angle = float(request.form['angle'])
     mode = request.form['mode']
+    speed = int(request.form['speed'])
 
     # Determine friction coefficients based on terrain
     mu_s_wheel, mu_k_skis, mu_k_wheel = determine_terrain_friction(terrain)
@@ -36,7 +37,8 @@ def simulate():
         frontal_area=0.5,  # Example value, adjust as needed
         air_density=1.225,  # Example value, adjust as needed
         rolling_resistance=0.01,  # Example value, adjust as needed
-        angle_degrees=angle
+        angle_degrees=angle,
+        speed=speed
     )
 
     # Run the simulation (adjust the 'speeds' range as needed)

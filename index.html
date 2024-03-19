@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Bike Simulator</title>
+    <title>Electric Ski Bike Simulator</title>
     <!-- Include Tailwind CSS from CDN -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-100 h-screen flex justify-center items-center">
     <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-xl">
-        <h1 class="text-2xl font-bold text-center mb-6">Bike Simulator</h1>
+        <h1 class="text-2xl font-bold text-center mb-6">Electric Ski Bike Simulation Tool</h1>
         <form action="/simulate" method="post" class="space-y-4">
             <div>
                 <label class="block text-sm font-medium text-gray-700">Rider Mass (kg):</label>
@@ -34,13 +34,19 @@
                 <input type="number" name="angle" step="0.1" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
             </div>
             <div>
-                <label class="block text-sm font-medium text-gray-700">Pedaling Mode:</label>
+                <label class="block text-sm font-medium text-gray-700">Propulsion Mode:</label>
                 <select name="mode" required class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
                     <option value="pedal">Pedal Only</option>
                     <option value="motor">Motor Only</option>
                     <option value="both">Both</option>
                 </select>
             </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">
+                    Speed (m/s): <input type="number" name="speed" step="1" min="0" max="10" required class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                </label>
+            </div>
+
             <div id="run-div" class="text-center">
                 <button type="submit" class="mt-2 px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
                     Run Simulation
