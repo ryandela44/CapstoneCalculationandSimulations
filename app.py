@@ -15,7 +15,7 @@ def simulate():
     mass = float(request.form['mass'])
     terrain = request.form['terrain']
     pedaling_force = float(request.form['pedaling_force'])
-    angle = float(request.form['angle'])
+    gradient = float(request.form['gradient'])
     mode = request.form['mode']
     speed = int(request.form['speed'])
 
@@ -37,7 +37,7 @@ def simulate():
         frontal_area=0.5,  # Example value, adjust as needed
         air_density=1.225,  # Example value, adjust as needed
         rolling_resistance=0.01,  # Example value, adjust as needed
-        angle_degrees=angle,
+        gradient=gradient,
         speed=speed
     )
 
@@ -51,34 +51,60 @@ def simulate():
 
     # Return HTML with stats messages and image tags
     return render_template_string("""
-            <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Simulation Results</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .card {
+            background-color: #f7f7f7;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.5rem;
+            border-left: 5px solid;
+        }
+        .rolling { background-color: #48bb78; } /* Green */
+        .slipping { background-color: #f6ad55; } /* Orange */
+        .stopping { background-color: #f56565; } /* Red */
+        .normal { border-color: #ffffff; } /* White */
+    </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col justify-center items-center">
     <div class="bg-white p-6 rounded-lg shadow-lg max-w-4xl w-full space-y-4">
         <h1 class="text-xl md:text-2xl font-bold text-gray-800 text-center">Simulation Results</h1>
         <div class="space-y-2">
             {% for message in stats_messages %}
-                <p class="text-sm md:text-base text-gray-700">{{ message }}</p>
+                {% if "rolling" in message %}
+                <div class="card rolling">
+                {% elif "slip" in message %}
+                <div class="card slipping">
+                {% elif "stopping" in message %}
+                <div class="card slipping">
+                {% elif "not able" in message %}
+                <div class="card stopping">
+                {% else %}
+                <div class="card normal">
+                {% endif %}
+                    <p class="text-sm md:text-base text-gray-700">{{ message }}</p>
+                </div>
             {% endfor %}
         </div>
-        <div class="flex flex-col md:flex-row md:space-x-4 space-y-4 md:space-y-0 justify-center items-center">
-            <img src="{{ motor_power_plot }}" alt="Motor Power Plot" class="w-full md:w-1/3 rounded-lg shadow-md">
-            <img src="{{ battery_range_plot }}" alt="Battery Range Plot" class="w-full md:w-1/3 rounded-lg shadow-md">
-            <img src="{{ operation_time_plot }}" alt="Operation Time Plot" class="w-full md:w-1/3 rounded-lg shadow-md">
+        <div class="flex flex-wrap justify-center gap-4">
+            <img src="{{ motor_power_plot }}" alt="Motor Power Plot" class="max-w-xs rounded-lg shadow-md">
+            <img src="{{ battery_range_plot }}" alt="Battery Range Plot" class="max-w-xs rounded-lg shadow-md">
+            <img src="{{ operation_time_plot }}" alt="Operation Time Plot" class="max-w-xs rounded-lg shadow-md">
         </div>
         <div class="text-center mt-4">
-            <a href="/" class="inline-block px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
+            <a href="/" class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
                 Run Another Simulation
             </a>
         </div>
     </div>
 </body>
 </html>
+
         """, stats_messages=messages, motor_power_plot=motor_power_plot, battery_range_plot=battery_range_plot,
                                   operation_time_plot=operation_time_plot)
 
