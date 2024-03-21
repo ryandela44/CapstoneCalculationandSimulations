@@ -10,7 +10,7 @@ class BikeSimulator:
     def __init__(self, mass, wheel_radius, mu_s_wheel, mu_k_skis, mu_k_wheel, max_motor_power, pedaling_force,
                  battery_voltage, battery_capacity_ah, drag_coefficient, frontal_area, air_density, rolling_resistance,
                  gradient, speed):
-        self.mass = mass
+        self.mass = mass + 2
         self.wheel_radius = wheel_radius
         self.mu_s_wheel = mu_s_wheel
         self.mu_k_skis = mu_k_skis
@@ -79,10 +79,11 @@ class BikeSimulator:
             rpm = 0
             total_power = 0
             drag_force = 0
+            battery_range = 0
             print("************************************************************")
-            print("Gradient: " + self.gradient + "%")
+            print("Gradient: " + str(self.gradient) + "%")
             if self.speed == speed:
-                self.messages.append("Gradient: " + self.gradient + "%")
+                self.messages.append("Gradient: " + str(self.gradient) + "%")
             normal_force = self.mass * self.g * cos(self.angle)
             max_static_friction = self.mu_s_wheel * normal_force
             ski_friction = self.mu_k_skis * normal_force
@@ -123,9 +124,9 @@ class BikeSimulator:
                 motor_torque = motor_force * self.wheel_radius
                 mechanical_power = motor_torque * rpm * (2 * 3.1416 / 60)
                 electrical_power = mechanical_power / motor_efficiency
-                if electrical_power > self.max_motor_power:
-                    electrical_power = self.max_motor_power
-                    motor_efficiency = max(0, motor_efficiency - 0.1)
+                # if electrical_power > self.max_motor_power:
+                #     electrical_power = self.max_motor_power
+                #     motor_efficiency = max(0, motor_efficiency - 0.1)
 
                 total_power = pedaling_power + mechanical_power
 
@@ -140,10 +141,10 @@ class BikeSimulator:
             else:
                 operation_time = float('inf')
             if speed != 0:
-                if electrical_power != 1000:
-                    battery_range = operation_time * (speed * 3.6)
-                else:
-                    battery_range = 0
+                if electrical_power <= 1000:
+                    battery_range = operation_time * speed * 3.6
+                    #battery_range = operation_time * (speed * 3.6)
+
             else:
                 battery_range = float('inf')
             if self.speed == speed:

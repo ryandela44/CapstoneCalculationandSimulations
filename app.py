@@ -20,23 +20,23 @@ def simulate():
     speed = int(request.form['speed'])
 
     # Determine friction coefficients based on terrain
-    mu_s_wheel, mu_k_skis, mu_k_wheel = determine_terrain_friction(terrain)
+    mu_s_wheel, mu_k_skis, mu_k_wheel, rolling_resistance = determine_terrain_friction(terrain)
 
     # Create BikeSimulator instance
     simulator = BikeSimulator(
         mass=mass,
-        wheel_radius=0.6604,  # Example value, adjust as needed
+        wheel_radius=0.6604,
         mu_s_wheel=mu_s_wheel,
         mu_k_skis=mu_k_skis,
         mu_k_wheel=mu_k_wheel,
-        max_motor_power=1000,  # Example value, adjust as needed
+        max_motor_power=1000,
         pedaling_force=pedaling_force,
-        battery_voltage=48,  # Example value, adjust as needed
-        battery_capacity_ah=13,  # Example value, adjust as needed
-        drag_coefficient=0.5,  # Example value, adjust as needed
-        frontal_area=0.5,  # Example value, adjust as needed
-        air_density=1.225,  # Example value, adjust as needed
-        rolling_resistance=0.01,  # Example value, adjust as needed
+        battery_voltage=48,
+        battery_capacity_ah=13,
+        drag_coefficient=0.5,
+        frontal_area=0.5,
+        air_density=1.225,
+        rolling_resistance=rolling_resistance,
         gradient=gradient,
         speed=speed
     )
@@ -115,16 +115,18 @@ def determine_terrain_friction(terrain):
         mu_s_wheel = 0.2
         mu_k_skis = 0.05
         mu_k_wheel = 0.3
+        rolling_resistance = 0.05
     elif terrain == 'ice':
         mu_s_wheel = 0.1
         mu_k_skis = 0.03
         mu_k_wheel = 0.2
+        rolling_resistance = 0.09
     else:  # default values or you can add more terrains
         mu_s_wheel = 0.2
         mu_k_skis = 0.03
         mu_k_wheel = 0.25
-    return mu_s_wheel, mu_k_skis, mu_k_wheel
+    return mu_s_wheel, mu_k_skis, mu_k_wheel, rolling_resistance
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', debug=True)
