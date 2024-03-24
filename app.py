@@ -42,7 +42,7 @@ def simulate():
     )
 
     # Run the simulation (adjust the 'speeds' range as needed)
-    messages = simulator.simulate(mode, range(0, 11))
+    messages = simulator.simulate(mode, range(0, 21))
 
     # Generate URLs for the plots
     motor_power_plot = url_for('static', filename='motor_power_plot.png')
@@ -125,8 +125,10 @@ def determine_terrain_friction(terrain):
         mu_s_wheel = 0.2
         mu_k_skis = 0.03
         mu_k_wheel = 0.25
+        rolling_resistance = 0.05
     return mu_s_wheel, mu_k_skis, mu_k_wheel, rolling_resistance
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)
+    # app.run(host='0.0.0.0', debug=True)
+    app.run(debug=True)

@@ -10,7 +10,7 @@ class BikeSimulator:
     def __init__(self, mass, wheel_radius, mu_s_wheel, mu_k_skis, mu_k_wheel, max_motor_power, pedaling_force,
                  battery_voltage, battery_capacity_ah, drag_coefficient, frontal_area, air_density, rolling_resistance,
                  gradient, speed):
-        self.mass = mass + 2
+        self.mass = mass + 20
         self.wheel_radius = wheel_radius
         self.mu_s_wheel = mu_s_wheel
         self.mu_k_skis = mu_k_skis
@@ -88,7 +88,8 @@ class BikeSimulator:
             max_static_friction = self.mu_s_wheel * normal_force
             ski_friction = self.mu_k_skis * normal_force
             rolling_resistance_force = self.rolling_resistance * normal_force
-            force = self.mass * self.g * sin(self.angle) + rolling_resistance_force + ski_friction
+            gravity_force = self.mass * self.g * sin(self.angle)
+            force = gravity_force + rolling_resistance_force + ski_friction
             torque = force * self.wheel_radius
 
             if speed != 0:
@@ -132,7 +133,7 @@ class BikeSimulator:
 
             if force < 0:
                 regenerative_braking_efficiency = 0.8
-                recoverable_energy = abs(force) * speed * regenerative_braking_efficiency
+                recoverable_energy = 0.5 * self.mass * self.speed**2 * regenerative_braking_efficiency
                 recovered_energy_watt_hours = recoverable_energy * (1 / 3600)  # Convert to Wh if needed
 
             battery_energy = self.battery_voltage * self.battery_capacity_ah
