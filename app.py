@@ -14,7 +14,7 @@ def simulate():
     # Extract form data
     mass = float(request.form['mass'])
     terrain = request.form['terrain']
-    pedaling_force = float(request.form['pedaling_force'])
+    pedaling_power = float(request.form['pedaling_power'])
     gradient = float(request.form['gradient'])
     mode = request.form['mode']
     speed = int(request.form['speed'])
@@ -25,12 +25,12 @@ def simulate():
     # Create BikeSimulator instance
     simulator = BikeSimulator(
         mass=mass,
-        wheel_radius=0.6604,
+        wheel_radius=0.33,
         mu_s_wheel=mu_s_wheel,
         mu_k_skis=mu_k_skis,
         mu_k_wheel=mu_k_wheel,
         max_motor_power=1000,
-        pedaling_force=pedaling_force,
+        pedaling_power=pedaling_power,
         battery_voltage=48,
         battery_capacity_ah=13,
         drag_coefficient=0.5,
@@ -130,5 +130,5 @@ def determine_terrain_friction(terrain):
 
 
 if __name__ == '__main__':
-    # app.run(host='0.0.0.0', debug=True)
+    #app.run(host='0.0.0.0', debug=True)
     app.run(debug=True)

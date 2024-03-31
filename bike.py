@@ -2,12 +2,12 @@ import math
 import os
 
 import matplotlib.pyplot as plt
-from math import cos, sin, degrees
+from math import cos, sin
 
 
 class BikeSimulator:
 
-    def __init__(self, mass, wheel_radius, mu_s_wheel, mu_k_skis, mu_k_wheel, max_motor_power, pedaling_force,
+    def __init__(self, mass, wheel_radius, mu_s_wheel, mu_k_skis, mu_k_wheel, max_motor_power, pedaling_power,
                  battery_voltage, battery_capacity_ah, drag_coefficient, frontal_area, air_density, rolling_resistance,
                  gradient, speed):
         self.mass = mass + 20
@@ -16,7 +16,7 @@ class BikeSimulator:
         self.mu_k_skis = mu_k_skis
         self.mu_k_wheel = mu_k_wheel
         self.max_motor_power = max_motor_power
-        self.pedaling_force = pedaling_force
+        self.pedaling_power = pedaling_power
         self.battery_voltage = battery_voltage
         self.battery_capacity_ah = battery_capacity_ah
         self.drag_coefficient = drag_coefficient
@@ -32,6 +32,7 @@ class BikeSimulator:
         self.motor_efficiencies = []
         self.messages = []
         self.gradient = gradient
+        self.gear_ratio = 4.59
 
     def determine_bike_state(self, speed, force, max_static_friction, max_battery_force, pedaling_force, mode, state):
         motor_force = 0
@@ -91,43 +92,40 @@ class BikeSimulator:
             gravity_force = self.mass * self.g * sin(self.angle)
             force = gravity_force + rolling_resistance_force + ski_friction
             torque = force * self.wheel_radius
+            motor_torque = torque / self.gear_ratio
 
-            if speed != 0:
-                max_battery_force = self.max_motor_power / speed
+            max_angular_speed = 2 * 3.1416 * 470 / 60
+            max_torque = self.max_motor_power / max_angular_speed
+
+            max_battery_force = (max_torque * self.gear_ratio) / self.wheel_radius
+
+            if speed > 0:
+                pedaling_force = (pedaling_power / speed) * self.gear_ratio
             else:
-                max_battery_force = float('inf')
+                pedaling_force = 0
 
-            motor_force, total_force = self.determine_bike_state(speed, force, max_static_friction,
-                                                                 max_battery_force,
-                                                                 self.pedaling_force, mode,
+            motor_force, total_force = self.determine_bike_state(speed, force, max_static_friction,max_battery_force,
+                                                                 pedaling_force, mode,
                                                                  'rest')
 
             if self.speed == speed:
-                self.log_initial_stats(max_static_friction, force, torque, motor_force)
-            self.print_initial_stats(max_static_friction, force, torque, motor_force)
+                self.log_initial_stats(max_static_friction, force, motor_torque, motor_force)
+            self.print_initial_stats(max_static_friction, force, motor_torque, motor_force)
+
             if force < 0:
                 print("Bike does not need any additional force to move")
 
             if force <= total_force:
                 drag_force = 0.5 * self.drag_coefficient * self.air_density * self.frontal_area * speed ** 2
                 force = self.mass * self.g * sin(self.angle) + rolling_resistance_force + ski_friction + drag_force
-                motor_force, total_force = self.determine_bike_state(speed, force, max_static_friction,
-                                                                     max_battery_force,
-                                                                     self.pedaling_force, mode, 'motion')
+                motor_force, total_force = self.determine_bike_state(speed, force, max_static_friction, max_battery_force,
+                                                                     pedaling_force, mode, 'motion')
 
-                # Convert linear speed (m/s) to angular speed (RPM)
-                wheel_circumference = 2 * 3.1416 * self.wheel_radius
-                rpm = (speed / wheel_circumference) * 60
-                if mode in ['pedal', 'both']:
-                    pedaling_torque = self.pedaling_force * self.wheel_radius
-                    pedaling_power = pedaling_torque * rpm * (2 * 3.1416 / 60)  # Convert to watts
-
-                motor_torque = motor_force * self.wheel_radius
-                mechanical_power = motor_torque * rpm * (2 * 3.1416 / 60)
+                angular_speed_motor = speed / self.wheel_radius
+                rpm = angular_speed_motor * 60 / (2 * 3.1416)
+                motor_torque = (motor_force * self.wheel_radius) / self.gear_ratio
+                mechanical_power = motor_torque * angular_speed_motor
                 electrical_power = mechanical_power / motor_efficiency
-                # if electrical_power > self.max_motor_power:
-                #     electrical_power = self.max_motor_power
-                #     motor_efficiency = max(0, motor_efficiency - 0.1)
 
                 total_power = pedaling_power + mechanical_power
 
@@ -144,16 +142,15 @@ class BikeSimulator:
             if speed != 0:
                 if electrical_power <= 1000:
                     battery_range = operation_time * speed * 3.6
-                    #battery_range = operation_time * (speed * 3.6)
 
             else:
                 battery_range = float('inf')
             if self.speed == speed:
-                self.log_stats(force, torque, motor_force, total_force, electrical_power, rpm, pedaling_power,
+                self.log_stats(force, motor_torque, motor_force, total_force, electrical_power, rpm, pedaling_power,
                                total_power,speed)
                 self.log_battery_stats(operation_time, battery_range, recovered_energy_watt_hours)
                 self.print_stats(normal_force, max_static_friction, drag_force, rolling_resistance_force, force,
-                                 torque, motor_force, total_force, electrical_power, rpm, total_power, pedaling_power,speed)
+                                 motor_torque, motor_force, total_force, electrical_power, rpm, total_power, pedaling_power,speed)
                 self.print_battery_stats(operation_time, battery_range, recovered_energy_watt_hours)
 
             self.motor_powers.append(electrical_power)
