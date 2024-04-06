@@ -71,7 +71,6 @@ class BikeSimulator:
         return motor_force, total_force
 
     def simulate(self, mode, speeds):
-        pedaling_power = 0
         motor_efficiency = 0.8
         electrical_power = 0
         recovered_energy_watt_hours = 0
@@ -82,9 +81,9 @@ class BikeSimulator:
             drag_force = 0
             battery_range = 0
             print("************************************************************")
-            print("Gradient: " + str(self.gradient) + "%")
+            print("Gradient: " + str(self.gradient) + " %")
             if self.speed == speed:
-                self.messages.append("Gradient: " + str(self.gradient) + "%")
+                self.messages.append("Gradient: " + str(self.gradient) + " %")
             normal_force = self.mass * self.g * cos(self.angle)
             max_static_friction = self.mu_s_wheel * normal_force
             ski_friction = self.mu_k_skis * normal_force
@@ -100,7 +99,7 @@ class BikeSimulator:
             max_battery_force = (max_torque * self.gear_ratio) / self.wheel_radius
 
             if speed > 0:
-                pedaling_force = (pedaling_power / speed) * self.gear_ratio
+                pedaling_force = (self.pedaling_power / speed) * self.gear_ratio
             else:
                 pedaling_force = 0
 
@@ -127,7 +126,7 @@ class BikeSimulator:
                 mechanical_power = motor_torque * angular_speed_motor
                 electrical_power = mechanical_power / motor_efficiency
 
-                total_power = pedaling_power + mechanical_power
+                total_power = self.pedaling_power + mechanical_power
 
             if force < 0:
                 regenerative_braking_efficiency = 0.8
@@ -146,11 +145,11 @@ class BikeSimulator:
             else:
                 battery_range = float('inf')
             if self.speed == speed:
-                self.log_stats(force, motor_torque, motor_force, total_force, electrical_power, rpm, pedaling_power,
+                self.log_stats(force, motor_torque, motor_force, total_force, electrical_power, rpm, self.pedaling_power,
                                total_power,speed)
                 self.log_battery_stats(operation_time, battery_range, recovered_energy_watt_hours)
                 self.print_stats(normal_force, max_static_friction, drag_force, rolling_resistance_force, force,
-                                 motor_torque, motor_force, total_force, electrical_power, rpm, total_power, pedaling_power,speed)
+                                 motor_torque, motor_force, total_force, electrical_power, rpm, total_power, self.pedaling_power,speed)
                 self.print_battery_stats(operation_time, battery_range, recovered_energy_watt_hours)
 
             self.motor_powers.append(electrical_power)
@@ -163,53 +162,53 @@ class BikeSimulator:
 
     def print_stats(self, normal_force, max_static_friction, drag_force, rolling_resistance_force, force, torque,
                     motor_force, total_force, electrical_power, motor_rpm, total_power, pedaling_power,speed):
-        print("constant speed to maintain : " + str(speed) + "m/s")
-        print("The normal force is: " + str(normal_force) + "N")
-        print("The static friction force is: " + str(max_static_friction) + "N")
-        print("The drag force is: " + str(drag_force) + "N")
-        print("The rolling resistance force is: " + str(rolling_resistance_force) + "N")
-        print("The force is: " + str(force) + "N")
-        print("The torque is: " + str(torque) + "Nm")
-        print("The actual motor force is : " + str(motor_force) + "N")
-        print("The pedalling + motor force is :" + str(total_force) + "N")
-        print("The pedaling power is: " + str(pedaling_power) + "W")
-        print("The electrical motor power is: " + str(electrical_power) + "W")
-        print("The motor rpm  is: " + str(motor_rpm) + "rpm")
-        print("Pedaling + motor power : " + str(total_power) + "W")
+        print("constant speed to maintain : " + str(speed) + " m/s")
+        print("The normal force is: " + str(normal_force) + " N")
+        print("The static friction force is: " + str(max_static_friction) + " N")
+        print("The drag force is: " + str(drag_force) + " N")
+        print("The rolling resistance force is: " + str(rolling_resistance_force) + " N")
+        print("The force is: " + str(force) + " N")
+        print("The torque is: " + str(torque) + " Nm")
+        print("The actual motor force is : " + str(motor_force) + " N")
+        print("The pedalling + motor force is :" + str(total_force) + " N")
+        print("The pedaling power is: " + str(pedaling_power) + " W")
+        print("The electrical motor power is: " + str(electrical_power) + " W")
+        print("The motor rpm  is: " + str(motor_rpm) + " rpm")
+        print("Pedaling + motor power : " + str(total_power) + " W")
 
     def log_stats(self, force, torque, motor_force, total_force, electric_power, motor_rpm, pedaling_power,
                   total_power, speed):
-        self.messages.append("constant speed to maintain : " + str(speed) + "m/s")
-        self.messages.append("The force required to continue motion is: " + str(force) + "N")
-        # self.messages.append("The torque is: " + str(torque) + "Nm")
-        self.messages.append("The actual motor force is: " + str(motor_force) + "N")
-        self.messages.append("The pedalling + motor force is: " + str(total_force) + "N")
-        self.messages.append("The pedaling power is: " + str(pedaling_power) + "W")
-        self.messages.append("The electrical motor power is: " + str(electric_power) + "W")
-        self.messages.append("The motor rpm  is: " + str(motor_rpm) + "rpm")
-        # self.messages.append("Pedaling + motor power : " + str(total_power) + "W")
+        self.messages.append("constant speed to maintain : " + str(speed) + " m/s")
+        self.messages.append("The force required to continue motion is: " + str(force) + " N")
+        self.messages.append("The torque is: " + str(torque) + "Nm")
+        self.messages.append("The actual motor force is: " + str(motor_force) + " N")
+        self.messages.append("The pedalling + motor force is: " + str(total_force) + " N")
+        self.messages.append("The pedaling power is: " + str(pedaling_power) + " W")
+        self.messages.append("The electrical motor power is: " + str(electric_power) + " W")
+        self.messages.append("The motor rpm  is: " + str(motor_rpm) + " rpm")
+        self.messages.append("Pedaling + motor power : " + str(total_power) + "W")
 
     def print_initial_stats(self, max_static_friction, force, torque, motor_force):
-        print("Maximum static friction: " + str(max_static_friction) + "N")
-        print("Force required to set bike in motion: " + str(force) + "N")
-        print("Torque required to set bike in motion: " + str(torque) + "Nm")
-        print("The motor force is: " + str(motor_force) + "N")
+        print("Maximum static friction: " + str(max_static_friction) + " N")
+        print("Force required to set bike in motion: " + str(force) + " N")
+        print("Torque required to set bike in motion: " + str(torque) + " Nm")
+        print("The motor force is: " + str(motor_force) + " N")
 
     def log_initial_stats(self, max_static_friction, force, torque, motor_force_):
-        self.messages.append("Maximum static friction: " + str(max_static_friction) + "N")
-        self.messages.append("Force required to set bike in motion: " + str(force) + "N")
-        #self.messages.append("Torque required to set bike in motion: " + str(torque) + "Nm")
-        self.messages.append("The motor force is: " + str(motor_force_) + "N")
+        self.messages.append("Maximum static friction: " + str(max_static_friction) + " N")
+        self.messages.append("Force required to set bike in motion: " + str(force) + " N")
+        self.messages.append("Torque required to set bike in motion: " + str(torque) + "Nm")
+        self.messages.append("The motor force is: " + str(motor_force_) + " N")
 
     def print_battery_stats(self, operation_time, battery_range, recovered_energy_watt_hours):
-        print("The operational time is: " + str(operation_time) + "hours")
-        print("The battery range is: " + str(battery_range) + "km")
-        print("The recovered energy is: " + str(recovered_energy_watt_hours) + "Wh")
+        print("The operational time is: " + str(operation_time) + " hours")
+        print("The battery range is: " + str(battery_range) + " km")
+        print("The recovered energy is: " + str(recovered_energy_watt_hours) + " Wh")
 
     def log_battery_stats(self, operation_time, battery_range, recovered_energy_watt_hours):
-        self.messages.append("The operational time is: " + str(operation_time) + "hours")
-        self.messages.append("The battery range is: " + str(battery_range) + "km")
-        self.messages.append("The recovered energy is: " + str(recovered_energy_watt_hours) + "Wh")
+        self.messages.append("The operational time is: " + str(operation_time) + " hours")
+        self.messages.append("The battery range is: " + str(battery_range) + " km")
+        self.messages.append("The recovered energy is: " + str(recovered_energy_watt_hours) + " Wh")
 
     def plot_motor_power(self, speeds, motor_powers):
         plt.figure(figsize=(10, 6))

@@ -114,17 +114,17 @@ def determine_terrain_friction(terrain):
     if terrain == 'snow':
         mu_s_wheel = 0.2
         mu_k_skis = 0.05
-        mu_k_wheel = 0.3
+        mu_k_wheel = 0.1
         rolling_resistance = 0.05
     elif terrain == 'ice':
         mu_s_wheel = 0.1
         mu_k_skis = 0.03
-        mu_k_wheel = 0.2
+        mu_k_wheel = 0.05
         rolling_resistance = 0.09
     else:  # default values or you can add more terrains
         mu_s_wheel = 0.2
         mu_k_skis = 0.03
-        mu_k_wheel = 0.25
+        mu_k_wheel = 0.1
         rolling_resistance = 0.05
     return mu_s_wheel, mu_k_skis, mu_k_wheel, rolling_resistance
 
